@@ -1,113 +1,242 @@
-import Image from 'next/image'
+"use client";
+import { ReceiptCard } from "./components/ReceiptCard";
+import axios from "axios";
+import { useState, React, useEffect } from "react";
+import { UserList } from "./components/UserList";
+import { OverviewReceiptCard } from "./components/OverviewReceiptCard";
+import Image from "next/image";
+import { Editor } from "./components/Editor";
+import AddReceiptPopUp from "./components/AddReceiptPopUp";
 
-export default function Home() {
+const LandingPage = () => {
+  const [users, setUsers] = useState([]);
+  const [receipts, setReceipts] = useState([]);
+  const [personReceiptsData, setPersonReceiptsData] = useState([]);
+  const [allReceiptsData, setAllReceiptsData] = useState([]);
+  const [allReceipts, setAllReceipts] = useState([]);
+  const [selectedUser, setSelectedUser] = useState("Overview");
+  const [selectedReceipt, setSelectedReceipt] = useState("");
+  const [change, setChange] = useState(0);
+  const [admin, setAdmin] = useState(false);
+
+  function axiosGet(url) {
+    return axios
+      .get(`https://groceryapp-5e433-default-rtdb.firebaseio.com/${url}.json`)
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  useEffect(() => {
+    axiosGet("users")
+      .then((userDataObj) => userDataObj.data)
+      .then((userData) => {
+        setUsers(Object.keys(userData));
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    // axios
+    //   .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/users.json")
+    //   .then((response) => {
+    //     setUsers(Object.keys(response.data));
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+
+    axios
+      .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts.json")
+      .then((response) => {
+        setAllReceiptsData(response.data);
+        setAllReceipts(Object.keys(response.data));
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [change]);
+
+  useEffect(() => {
+    axios
+      .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts.json")
+      .then((response) => {
+        setAllReceiptsData(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [allReceipts]);
+
+  useEffect(() => {
+    if (selectedUser === "Overview") {
+      document.getElementById("receipt-chooser").classList.remove("hidden");
+      document.getElementById("select-items").style.display = "none";
+      setSelectedReceipt("");
+      setReceipts([]);
+    } else {
+      axios
+        .get(
+          `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${selectedUser}/receipts.json`
+        )
+        .then((response) => {
+          setReceipts(Object.keys(response.data));
+          setPersonReceiptsData(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [selectedUser]);
+
+  function switchToReceipt(receiptName) {
+    document.getElementById("receipt-chooser").classList.add("hidden");
+    document.getElementById("select-items").style.display = "";
+    setSelectedReceipt(receiptName);
+  }
+
+  function openUserBox() {
+    document.getElementById("add-receipt").style.display = "";
+  }
+
+  function switchToUser() {
+    document.getElementById("receipt-chooser").classList.remove("hidden");
+    document.getElementById("select-items").style.display = "none";
+    setSelectedReceipt("");
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
+    <main className="bg-darkBackground max-h-fit min-h-screen pt-10 text-lightFont">
+      <header className="flex justify-center items-center">
+        {selectedReceipt === "" ? null : (
+          <button onClick={switchToUser} className="absolute left-5">
             <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+              src={
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Back_Arrow.svg/2048px-Back_Arrow.svg.png"
+              }
+              width={50}
+              height={50}
+              alt={"Back Button"}
             />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+          </button>
+        )}
+        <UserList
+          users={users}
+          selectedUser={selectedUser}
+          setSelectedUser={setSelectedUser}
         />
-      </div>
+      </header>
+      <article id={"receipt-chooser"} className="w-screen p-12">
+        {selectedUser === "Overview"
+          ? allReceipts && allReceiptsData
+            ? allReceipts.map((receiptName) => (
+                <div key={`${receiptName} overview`}>
+                  {admin ? (
+                    <Editor
+                      receiptName={receiptName}
+                      users={users}
+                      usersPaying={Object.keys(
+                        "individualTotals" in allReceiptsData[receiptName]
+                          ? allReceiptsData[receiptName].individualTotals
+                          : []
+                      )}
+                      setChange={setChange}
+                      change={change}
+                    />
+                  ) : null}
+                  <OverviewReceiptCard
+                    receiptName={receiptName}
+                    total={allReceiptsData[receiptName].total}
+                    description={allReceiptsData[receiptName].description}
+                    payTo={allReceiptsData[receiptName].payTo}
+                    users={Object.keys(
+                      "individualTotals" in allReceiptsData[receiptName]
+                        ? allReceiptsData[receiptName].individualTotals
+                        : []
+                    )}
+                    switchToReceipt={switchToReceipt}
+                    setSelectedUser={setSelectedUser}
+                    individualTotals={
+                      allReceiptsData[receiptName].individualTotals
+                    }
+                  />
+                </div>
+              ))
+            : null
+          : receipts && allReceiptsData
+          ? receipts.map((receiptName) => (
+              <div key={`${receiptName} receiptcard`}>
+                {admin && receiptName in allReceipts ? (
+                  <Editor
+                    receiptName={receiptName}
+                    users={users}
+                    usersPaying={Object.keys(
+                      "individualTotals" in allReceiptsData[receiptName]
+                        ? allReceiptsData[receiptName].individualTotals
+                        : []
+                    )}
+                    setChange={setChange}
+                  />
+                ) : null}
+                <button
+                  className="w-full mb-[30px]"
+                  onClick={() => {
+                    switchToReceipt(receiptName);
+                  }}
+                >
+                  {allReceipts[receiptName] ? (
+                    <ReceiptCard
+                      receiptName={receiptName}
+                      total={allReceiptsData[receiptName].total}
+                      individualTotal={
+                        personReceiptsData[receiptName].individualTotal
+                      }
+                      description={allReceiptsData[receiptName].description}
+                      payTo={allReceiptsData[receiptName].payTo}
+                    />
+                  ) : null}
+                </button>
+              </div>
+            ))
+          : null}
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        {/* Admin Stuff*/}
+        <AddReceiptPopUp setChange={setChange} />
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+        {selectedUser === "Mitchell" ? (
+          admin ? (
+            <div className="flex justify-between">
+              <button onClick={openUserBox}>Add Receipt</button>
+              <button
+                onClick={() => {
+                  setAdmin((prevAdmin) => !prevAdmin);
+                }}
+              >
+                Disable Edits
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setAdmin((prevAdmin) => !prevAdmin);
+                }}
+              >
+                Enable Edits
+              </button>
+            </div>
+          )
+        ) : null}
+      </article>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <article id={"select-items"} style={{ display: "none" }}>
+        Next Screen for {selectedUser} for {selectedReceipt}
+      </article>
+      {selectedUser === "Mitchell" ? (
+        <div className="flex justify-center">
+          {/* <button onClick={openUserBox}>Add Items</button> */}
+        </div>
+      ) : null}
     </main>
-  )
-}
+  );
+};
+
+export default LandingPage;
