@@ -1,12 +1,12 @@
 "use client";
 import { ReceiptCard } from "./components/ReceiptCard";
-import axios from "axios";
 import { useState, React, useEffect } from "react";
 import { UserList } from "./components/UserList";
 import { OverviewReceiptCard } from "./components/OverviewReceiptCard";
 import Image from "next/image";
 import { Editor } from "./components/Editor";
 import AddReceiptPopUp from "./components/AddReceiptPopUp";
+import { axiosGet } from "./api/apiCalls";
 
 const LandingPage = () => {
   const [users, setUsers] = useState([]);
@@ -19,36 +19,19 @@ const LandingPage = () => {
   const [change, setChange] = useState(0);
   const [admin, setAdmin] = useState(false);
 
-  function axiosGet(url) {
-    return axios
-      .get(`https://groceryapp-5e433-default-rtdb.firebaseio.com/${url}.json`)
-      .catch((error) => {
-        console.log(error);
-      });
-  }
   useEffect(() => {
     axiosGet("users")
-      .then((userDataObj) => userDataObj.data)
-      .then((userData) => {
-        setUsers(Object.keys(userData));
+      .then((userDataObj) => {
+        setUsers(Object.keys(userDataObj.data));
       })
       .catch((error) => {
         console.log(error);
       });
-    // axios
-    //   .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/users.json")
-    //   .then((response) => {
-    //     setUsers(Object.keys(response.data));
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
 
-    axios
-      .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts.json")
-      .then((response) => {
-        setAllReceiptsData(response.data);
-        setAllReceipts(Object.keys(response.data));
+    axiosGet("receipts")
+      .then((allReceiptsObj) => {
+        setAllReceiptsData(allReceiptsObj.data);
+        setAllReceipts(Object.keys(allReceiptsObj.data));
       })
       .catch((error) => {
         console.log(error);
@@ -56,10 +39,9 @@ const LandingPage = () => {
   }, [change]);
 
   useEffect(() => {
-    axios
-      .get("https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts.json")
-      .then((response) => {
-        setAllReceiptsData(response.data);
+    axiosGet("receipts")
+      .then((allReceiptsObj) => {
+        setAllReceiptsData(allReceiptsObj.data);
       })
       .catch((error) => {
         console.log(error);
@@ -73,13 +55,10 @@ const LandingPage = () => {
       setSelectedReceipt("");
       setReceipts([]);
     } else {
-      axios
-        .get(
-          `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${selectedUser}/receipts.json`
-        )
-        .then((response) => {
-          setReceipts(Object.keys(response.data));
-          setPersonReceiptsData(response.data);
+      axiosGet(`users/${selectedUser}/receipts`)
+        .then((personReceiptObj) => {
+          setReceipts(Object.keys(personReceiptObj.data));
+          setPersonReceiptsData(personReceiptObj.data);
         })
         .catch((error) => {
           console.log(error);
@@ -182,17 +161,15 @@ const LandingPage = () => {
                     switchToReceipt(receiptName);
                   }}
                 >
-                  {allReceipts[receiptName] ? (
-                    <ReceiptCard
-                      receiptName={receiptName}
-                      total={allReceiptsData[receiptName].total}
-                      individualTotal={
-                        personReceiptsData[receiptName].individualTotal
-                      }
-                      description={allReceiptsData[receiptName].description}
-                      payTo={allReceiptsData[receiptName].payTo}
-                    />
-                  ) : null}
+                  <ReceiptCard
+                    receiptName={receiptName}
+                    total={allReceiptsData[receiptName].total}
+                    individualTotal={
+                      personReceiptsData[receiptName].individualTotal
+                    }
+                    description={allReceiptsData[receiptName].description}
+                    payTo={allReceiptsData[receiptName].payTo}
+                  />
                 </button>
               </div>
             ))
@@ -201,7 +178,7 @@ const LandingPage = () => {
         {/* Admin Stuff*/}
         <AddReceiptPopUp setChange={setChange} />
 
-        {selectedUser === "Mitchell" ? (
+        {selectedUser === "Overview" ? (
           admin ? (
             <div className="flex justify-between">
               <button onClick={openUserBox}>Add Receipt</button>

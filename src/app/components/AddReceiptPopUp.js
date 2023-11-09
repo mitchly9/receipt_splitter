@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "axios";
+import { axiosPut } from "../api/apiCalls";
 
 const AddReceiptPopUp = ({ setChange }) => {
   function addReceipt(e) {
@@ -20,11 +20,7 @@ const AddReceiptPopUp = ({ setChange }) => {
       total,
     };
 
-    axios
-      .put(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`,
-        receipt
-      )
+    axiosPut(`receipts/${receiptName}`, receipt)
       .then(() => {
         document.getElementById("add-receipt").style.display = "none";
         setChange((prevChange) => prevChange + 1);

@@ -1,5 +1,4 @@
 import React from "react";
-import { useEffect, useState } from "react";
 
 export const UserList = ({ selectedUser, setSelectedUser, users }) => {
   function changeUser() {

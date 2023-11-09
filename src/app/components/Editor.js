@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import { axiosPatch, deleteEntry, moveBranch } from "../api/apiCalls";
 
 export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
   const [updateUsersPaying, setUpdateUsersPaying] = useState(usersPaying);
@@ -8,12 +8,8 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
 
   function changeDescription() {
     let description = document.getElementById("changeDescription").value;
-    let data = { description: description };
-    axios
-      .patch(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`,
-        data
-      )
+    let newDescriptionData = { description: description };
+    axiosPatch(`receipts/${receiptName}`, newDescriptionData)
       .then(() => {
         setChange((prevChange) => prevChange + 1);
       })
@@ -22,12 +18,8 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
 
   function changePayTo() {
     let payTo = document.getElementById("changePayTo").value;
-    let data = { payTo: payTo };
-    axios
-      .patch(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`,
-        data
-      )
+    let newPayToData = { payTo: payTo };
+    axiosPatch(`receipts/${receiptName}`, newPayToData)
       .then(() => {
         setChange((prevChange) => prevChange + 1);
       })
@@ -36,59 +28,17 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
 
   function changeReceiptName() {
     let newReceiptName = document.getElementById("changeReceiptName").value;
-    axios
-      .get(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`
-      )
-      .then((receipt) => {
-        axios
-          .put(
-            `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`,
-            {
-              description: null,
-              individualTotals: null,
-              payTo: null,
-              total: null,
-            }
-          )
-          .then(() => {
-            axios
-              .put(
-                `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${newReceiptName}.json`,
-                receipt.data
-              )
-              .then(() => {
-                for (let i = 0; i < updateUsersPaying.length; i++) {
-                  axios
-                    .get(
-                      `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${updateUsersPaying[i]}/receipts/${receiptName}.json`
-                    )
-                    .then((userReceipt) => {
-                      axios
-                        .put(
-                          `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${updateUsersPaying[i]}/receipts/${receiptName}.json`,
-                          {
-                            individualTotal: null,
-                            marked: null,
-                            paid: null,
-                          }
-                        )
-                        .then(() => {
-                          axios.put(
-                            `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${updateUsersPaying[i]}/receipts/${newReceiptName}.json`,
-                            userReceipt.data
-                          );
-                        });
-                    })
-                    .catch((error) => console.log(error));
-                }
-              })
-              .then(() => {
-                setChange((prevChange) => prevChange + 1);
-              })
-              .catch((error) => console.log(error));
-          })
-          .catch((error) => console.log("null"));
+    moveBranch(`receipts/${receiptName}`, `receipts/${newReceiptName}`)
+      .then(() => {
+        for (let i = 0; i < updateUsersPaying.length; i++) {
+          moveBranch(
+            `users/${updateUsersPaying[i]}/receipts/${receiptName}`,
+            `users/${updateUsersPaying[i]}/receipts/${newReceiptName}`
+          );
+        }
+      })
+      .then(() => {
+        setChange((prevChange) => prevChange + 1);
       })
       .catch((error) => {
         console.log(error);
@@ -97,12 +47,8 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
 
   function changeTotal() {
     let newTotal = document.getElementById("changeTotal").value;
-    let newObjTotal = { total: newTotal };
-    axios
-      .patch(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}.json`,
-        newObjTotal
-      )
+    let newTotalData = { total: newTotal };
+    axiosPatch(`receipts/${receiptName}`, newTotalData)
       .then(() => {
         setChange((prevChange) => prevChange + 1);
       })
@@ -110,67 +56,45 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
   }
 
   function addUserReceiptAndTotals(name) {
-    let addUsersPaying = {};
-    addUsersPaying[name] = 0;
-    axios
-      .patch(
-        `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}/individualTotals.json`,
-        addUsersPaying
-      )
-      .then(() => {
-        let newArr = [...updateUsersPaying];
-        newArr.push(name);
+    let usersPayingData = {};
+    usersPayingData[name] = 0;
+    axiosPatch(
+      `receipts/${receiptName}/individualTotals`,
+      usersPayingData
+    ).catch((error) => {
+      console.log(error);
+    });
 
-        let addUserReceipt = {};
-        addUserReceipt[receiptName] = {
-          individualTotal: 0,
-          marked: false,
-          paid: false,
-        };
-        axios
-          .patch(
-            `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${name}/receipts.json`,
-            addUserReceipt
-          )
-          .then(() => {
-            setUpdateUsersPaying(newArr);
-            setChange((prevChange) => prevChange + 1);
-          });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    let updateUsersPayingCopy = [...updateUsersPaying];
+    updateUsersPayingCopy.push(name);
+
+    let addUserReceipt = {};
+    addUserReceipt[receiptName] = {
+      individualTotal: 0,
+      marked: false,
+      paid: false,
+    };
+
+    axiosPatch(`users/${name}/receipts`, addUserReceipt).then(() => {
+      setUpdateUsersPaying(updateUsersPayingCopy);
+      setChange((prevChange) => prevChange + 1);
+    });
   }
 
   function changeUsersPaying(e) {
     let name = e.target.textContent;
     if (updateUsersPaying.includes(name)) {
-      let deleteUsersPaying = {};
-      deleteUsersPaying[name] = null;
-      axios
-        .patch(
-          `https://groceryapp-5e433-default-rtdb.firebaseio.com/receipts/${receiptName}/individualTotals.json`,
-          deleteUsersPaying
-        )
+      deleteEntry(`receipts/${receiptName}/individualTotals`, name)
         .then(() => {
-          let newArr = [...updateUsersPaying];
-          const index = newArr.indexOf(name);
-
-          if (index > -1) {
-            // only splice array when item is found
-            newArr.splice(index, 1); // 2nd parameter means remove one item only
-          }
-          let deleteUserReceipt = {};
-          deleteUserReceipt[receiptName] = null;
-          axios
-            .patch(
-              `https://groceryapp-5e433-default-rtdb.firebaseio.com/users/${name}/receipts.json`,
-              deleteUserReceipt
-            )
-            .then(() => {
-              setUpdateUsersPaying(newArr);
-              setChange((prevChange) => prevChange + 1);
-            });
+          deleteEntry(`users/${name}/receipts`, receiptName).then(() => {
+            let update = [...updateUsersPaying];
+            const index = update.indexOf(name);
+            if (index > -1) {
+              update.splice(index, 1);
+            }
+            setUpdateUsersPaying(update);
+            setChange((prevChange) => prevChange + 1);
+          });
         })
         .catch((error) => {
           console.log(error);

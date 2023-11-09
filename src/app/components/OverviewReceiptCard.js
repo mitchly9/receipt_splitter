@@ -1,6 +1,3 @@
-import React, { useEffect } from "react";
-import Link from "next/link";
-
 export const OverviewReceiptCard = ({
   receiptName,
   total,
