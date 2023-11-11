@@ -4,6 +4,6 @@
 
 module.exports = {
   images: {
-    domains: ["upload.wikimedia.org"],
+    domains: ["upload.wikimedia.org", "images.costcobusinessdelivery.com"],
   },
 };

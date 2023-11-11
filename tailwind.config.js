@@ -8,19 +8,21 @@ module.exports = {
   theme: {
     extend: {
       backgroundColor: {
-        lightBackground: "#F1F1ED",
-        darkBackground: "#454651",
+        lightBackground: "#282828",
+        darkBackground: "#121212",
         accent: "#878454",
       },
       textColor: {
         lightFont: "#F1F1ED",
-        darkFont: "#454651",
+        darkFont: "FFFFFF",
         accent: "#878454",
       },
       borderColor: {
         lightBackground: "#F1F1ED",
         darkBackground: "#454651",
         accent: "#878454",
+        trueColor: "#5cb85c",
+        falseColor: "#d9534f",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

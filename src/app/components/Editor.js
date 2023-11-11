@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { axiosPatch, deleteEntry, moveBranch } from "../api/apiCalls";
+import {
+  axiosPatch,
+  deleteEntry,
+  moveBranch,
+  addOrEditSingleEntry,
+  axiosPut,
+} from "../api/apiCalls";
+import { userReceiptSchema } from "../util/schemas";
 
 export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
   const [updateUsersPaying, setUpdateUsersPaying] = useState(usersPaying);
@@ -7,27 +14,35 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
   useEffect(() => {}, [updateUsersPaying]);
 
   function changeDescription() {
-    let description = document.getElementById("changeDescription").value;
-    let newDescriptionData = { description: description };
-    axiosPatch(`receipts/${receiptName}`, newDescriptionData)
+    addOrEditSingleEntry(
+      `receipts/${receiptName}`,
+      "description",
+      document.getElementById("changeDescription " + receiptName).value
+    )
       .then(() => {
         setChange((prevChange) => prevChange + 1);
+        document.getElementById("changeDescription " + receiptName).value = "";
       })
       .catch((error) => console.log(error));
   }
 
   function changePayTo() {
-    let payTo = document.getElementById("changePayTo").value;
-    let newPayToData = { payTo: payTo };
-    axiosPatch(`receipts/${receiptName}`, newPayToData)
+    addOrEditSingleEntry(
+      `receipts/${receiptName}`,
+      "payTo",
+      document.getElementById("changePayTo " + receiptName).value
+    )
       .then(() => {
         setChange((prevChange) => prevChange + 1);
+        document.getElementById("changePayTo " + receiptName).value = "";
       })
       .catch((error) => console.log(error));
   }
 
   function changeReceiptName() {
-    let newReceiptName = document.getElementById("changeReceiptName").value;
+    let newReceiptName = document.getElementById(
+      "changeReceiptName " + receiptName
+    ).value;
     moveBranch(`receipts/${receiptName}`, `receipts/${newReceiptName}`)
       .then(() => {
         for (let i = 0; i < updateUsersPaying.length; i++) {
@@ -46,61 +61,56 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
   }
 
   function changeTotal() {
-    let newTotal = document.getElementById("changeTotal").value;
-    let newTotalData = { total: newTotal };
-    axiosPatch(`receipts/${receiptName}`, newTotalData)
+    addOrEditSingleEntry(
+      `receipts/${receiptName}`,
+      "total",
+      document.getElementById("changeTotal " + receiptName).value
+    )
       .then(() => {
         setChange((prevChange) => prevChange + 1);
       })
       .catch((error) => console.log(error));
   }
 
-  function addUserReceiptAndTotals(name) {
-    let usersPayingData = {};
-    usersPayingData[name] = 0;
-    axiosPatch(
-      `receipts/${receiptName}/individualTotals`,
-      usersPayingData
-    ).catch((error) => {
-      console.log(error);
-    });
-
-    let updateUsersPayingCopy = [...updateUsersPaying];
-    updateUsersPayingCopy.push(name);
-
-    let addUserReceipt = {};
-    addUserReceipt[receiptName] = {
-      individualTotal: 0,
-      marked: false,
-      paid: false,
-    };
-
-    axiosPatch(`users/${name}/receipts`, addUserReceipt).then(() => {
-      setUpdateUsersPaying(updateUsersPayingCopy);
-      setChange((prevChange) => prevChange + 1);
-    });
+  function addUserToReceipt(name) {
+    Promise.all([
+      addOrEditSingleEntry(`receipts/${receiptName}/individualTotals`, name, 0),
+      addOrEditSingleEntry(`receipts/${receiptName}/marked`, name, false),
+      addOrEditSingleEntry(
+        `users/${name}/receipts`,
+        receiptName,
+        userReceiptSchema
+      ),
+    ])
+      .then(() => {
+        let updateUsersPayingCopy = [...updateUsersPaying];
+        updateUsersPayingCopy.push(name);
+        setUpdateUsersPaying(updateUsersPayingCopy);
+        setChange((prevChange) => prevChange + 1);
+      })
+      .catch((error) => {
+        console.log("errors in here");
+      });
   }
 
   function changeUsersPaying(e) {
     let name = e.target.textContent;
     if (updateUsersPaying.includes(name)) {
-      deleteEntry(`receipts/${receiptName}/individualTotals`, name)
-        .then(() => {
-          deleteEntry(`users/${name}/receipts`, receiptName).then(() => {
-            let update = [...updateUsersPaying];
-            const index = update.indexOf(name);
-            if (index > -1) {
-              update.splice(index, 1);
-            }
-            setUpdateUsersPaying(update);
-            setChange((prevChange) => prevChange + 1);
-          });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      Promise.all([
+        deleteEntry(`receipts/${receiptName}/individualTotals`, name),
+        deleteEntry(`receipts/${receiptName}/marked`, name),
+        deleteEntry(`users/${name}/receipts`, receiptName),
+      ]).then(() => {
+        let update = [...updateUsersPaying];
+        const index = update.indexOf(name);
+        if (index > -1) {
+          update.splice(index, 1);
+        }
+        setUpdateUsersPaying(update);
+        setChange((prevChange) => prevChange + 1);
+      });
     } else {
-      addUserReceiptAndTotals(name);
+      addUserToReceipt(name);
     }
   }
 
@@ -110,7 +120,7 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
         <div>
           <input
             type="text"
-            id="changeReceiptName"
+            id={"changeReceiptName " + receiptName}
             className="border rounded w-min block p-2 text-darkFont"
             placeholder="Enter New Name"
           />
@@ -123,7 +133,7 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
         <div>
           <input
             type="text"
-            id="changeTotal"
+            id={"changeTotal " + receiptName}
             className="border rounded w-min block p-2 text-darkFont"
             placeholder="Enter New Total"
           />
@@ -136,12 +146,12 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
         {users
           ? users.map((user) => (
               <button
-                key={`${user} editor`}
+                key={`${user} editor ${receiptName}`}
                 onClick={changeUsersPaying}
                 className={
                   updateUsersPaying.includes(user)
-                    ? "border-2 border-green-300 h-fit p-1 mx-2 mb-1"
-                    : "border-2 border-red-300 h-fit p-1 mx-2 mb-1"
+                    ? "border-2 border-trueColor h-fit p-1 mx-2 mb-1"
+                    : "border-2 border-falseColor h-fit p-1 mx-2 mb-1"
                 }
               >
                 <h1>{user}</h1>
@@ -151,19 +161,20 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
         <form className="text-center">
           <input
             type="text"
-            id="addName"
+            id={"addNameForm " + receiptName}
             className="border rounded w-min p-2 text-darkFont"
             placeholder="Enter new person"
           />
           <button
             onClick={(e) => {
               e.preventDefault();
-              addUserReceiptAndTotals(document.getElementById("addName").value);
-              document.getElementById("addName").value = "";
+              addUserToReceipt(
+                document.getElementById("addNameForm " + receiptName).value
+              );
+              document.getElementById("addNameForm " + receiptName).value = "";
             }}
             className="block text-center w-full"
           >
-            {" "}
             Add
           </button>
         </form>
@@ -174,7 +185,7 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
             type="text"
             id="changeDescription"
             className="border rounded w-fit block p-2 text-darkFont"
-            placeholder="Enter Description"
+            placeholder={"Enter Description " + receiptName}
           />
           <button className="border-2" onClick={changeDescription}>
             Change Description
@@ -185,7 +196,7 @@ export const Editor = ({ users, usersPaying, receiptName, setChange }) => {
         <div>
           <input
             type="text"
-            id="changePayTo"
+            id={"changePayTo " + receiptName}
             className="border rounded w-fit block p-2 text-darkFont"
             placeholder="Enter Name"
           />

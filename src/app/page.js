@@ -6,7 +6,8 @@ import { OverviewReceiptCard } from "./components/OverviewReceiptCard";
 import Image from "next/image";
 import { Editor } from "./components/Editor";
 import AddReceiptPopUp from "./components/AddReceiptPopUp";
-import { axiosGet } from "./api/apiCalls";
+import { addOrEditSingleEntry, axiosGet } from "./api/apiCalls";
+import ItemCard from "./components/ItemCard";
 
 const LandingPage = () => {
   const [users, setUsers] = useState([]);
@@ -66,10 +67,71 @@ const LandingPage = () => {
     }
   }, [selectedUser]);
 
+  function calculateTotal() {
+    axiosGet(`/receipts/${selectedReceipt}`)
+      .then((receiptData) => {
+        let allItems = receiptData.data.items;
+        let allTotals = {};
+        let actualTotal = 0;
+        let usersPayingTotal = 0;
+        Object.keys(receiptData.data.individualTotals).forEach(function (name) {
+          allTotals[name] = 0;
+        });
+        for (let i = 0; i < allItems.length; i++) {
+          actualTotal += allItems[i].itemPrice;
+          if ("usersBuying" in allItems[i]) {
+            let usersBuyingItem = Object.keys(allItems[i].usersBuying);
+            for (let j = 0; j < usersBuyingItem.length; j++) {
+              let math = allItems[i].itemPrice / usersBuyingItem.length;
+              usersPayingTotal += math;
+              allTotals[usersBuyingItem[j]] += math;
+            }
+          }
+        }
+        Object.keys(receiptData.data.individualTotals).forEach(function (name) {
+          allTotals[name] = Math.round(allTotals[name] * 100) / 100;
+        });
+        usersPayingTotal = Math.round(usersPayingTotal * 100) / 100;
+        addOrEditSingleEntry(
+          `/receipts/${selectedReceipt}`,
+          "actualTotal",
+          actualTotal
+        );
+        addOrEditSingleEntry(
+          `/receipts/${selectedReceipt}`,
+          "usersPayingTotal",
+          usersPayingTotal
+        );
+        addOrEditSingleEntry(
+          `/receipts/${selectedReceipt}`,
+          "individualTotals",
+          allTotals
+        );
+        Object.keys(receiptData.data.individualTotals).forEach(function (name) {
+          addOrEditSingleEntry(
+            `/users/${name}/receipts/${selectedReceipt}`,
+            "individualTotal",
+            allTotals[name]
+          );
+        });
+      })
+      .then(() => {
+        setChange((prevChange) => prevChange + 1);
+      })
+      .catch((error) => console.log(error));
+  }
+
   function switchToReceipt(receiptName) {
+    setSelectedReceipt(receiptName);
     document.getElementById("receipt-chooser").classList.add("hidden");
     document.getElementById("select-items").style.display = "";
-    setSelectedReceipt(receiptName);
+    setUsers(
+      Object.keys(
+        "individualTotals" in allReceiptsData[receiptName]
+          ? allReceiptsData[receiptName].individualTotals
+          : []
+      )
+    );
   }
 
   function openUserBox() {
@@ -83,62 +145,72 @@ const LandingPage = () => {
   }
 
   return (
-    <main className="bg-darkBackground max-h-fit min-h-screen pt-10 text-lightFont">
+    <main className="bg-darkBackground max-h-fit min-h-screen p-10 text-lightFont">
       <header className="flex justify-center items-center">
         {selectedReceipt === "" ? null : (
           <button onClick={switchToUser} className="absolute left-5">
-            <Image
+            {/* <Image
               src={
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Back_Arrow.svg/2048px-Back_Arrow.svg.png"
               }
               width={50}
               height={50}
               alt={"Back Button"}
-            />
+            /> */}
           </button>
         )}
         <UserList
+          setChange={setChange}
+          setSelectedReceipt={setSelectedReceipt}
           users={users}
           selectedUser={selectedUser}
           setSelectedUser={setSelectedUser}
         />
       </header>
-      <article id={"receipt-chooser"} className="w-screen p-12">
+      <article id={"receipt-chooser"} className="mt-12">
         {selectedUser === "Overview"
           ? allReceipts && allReceiptsData
-            ? allReceipts.map((receiptName) => (
-                <div key={`${receiptName} overview`}>
-                  {admin ? (
-                    <Editor
+            ? allReceipts.map((receiptName) =>
+                receiptName in allReceiptsData ? (
+                  <div key={`${receiptName} overview`}>
+                    {admin ? (
+                      <Editor
+                        receiptName={receiptName}
+                        users={users}
+                        usersPaying={Object.keys(
+                          receiptName in allReceiptsData &&
+                            "individualTotals" in allReceiptsData[receiptName]
+                            ? allReceiptsData[receiptName].individualTotals
+                            : []
+                        )}
+                        setChange={setChange}
+                        change={change}
+                      />
+                    ) : null}
+                    <OverviewReceiptCard
                       receiptName={receiptName}
-                      users={users}
-                      usersPaying={Object.keys(
+                      total={allReceiptsData[receiptName].total}
+                      description={allReceiptsData[receiptName].description}
+                      payTo={allReceiptsData[receiptName].payTo}
+                      users={Object.keys(
                         "individualTotals" in allReceiptsData[receiptName]
                           ? allReceiptsData[receiptName].individualTotals
                           : []
                       )}
-                      setChange={setChange}
-                      change={change}
+                      marked={
+                        "marked" in allReceiptsData[receiptName]
+                          ? allReceiptsData[receiptName].marked
+                          : []
+                      }
+                      switchToReceipt={switchToReceipt}
+                      setSelectedUser={setSelectedUser}
+                      individualTotals={
+                        allReceiptsData[receiptName].individualTotals
+                      }
                     />
-                  ) : null}
-                  <OverviewReceiptCard
-                    receiptName={receiptName}
-                    total={allReceiptsData[receiptName].total}
-                    description={allReceiptsData[receiptName].description}
-                    payTo={allReceiptsData[receiptName].payTo}
-                    users={Object.keys(
-                      "individualTotals" in allReceiptsData[receiptName]
-                        ? allReceiptsData[receiptName].individualTotals
-                        : []
-                    )}
-                    switchToReceipt={switchToReceipt}
-                    setSelectedUser={setSelectedUser}
-                    individualTotals={
-                      allReceiptsData[receiptName].individualTotals
-                    }
-                  />
-                </div>
-              ))
+                  </div>
+                ) : null
+              )
             : null
           : receipts && allReceiptsData
           ? receipts.map((receiptName) => (
@@ -155,28 +227,30 @@ const LandingPage = () => {
                     setChange={setChange}
                   />
                 ) : null}
-                <button
-                  className="w-full mb-[30px]"
-                  onClick={() => {
-                    switchToReceipt(receiptName);
-                  }}
-                >
-                  <ReceiptCard
-                    receiptName={receiptName}
-                    total={allReceiptsData[receiptName].total}
-                    individualTotal={
-                      personReceiptsData[receiptName].individualTotal
-                    }
-                    description={allReceiptsData[receiptName].description}
-                    payTo={allReceiptsData[receiptName].payTo}
-                  />
-                </button>
+                <ReceiptCard
+                  selectedUser={selectedUser}
+                  receiptName={receiptName}
+                  total={allReceiptsData[receiptName].total}
+                  individualTotal={
+                    personReceiptsData[receiptName].individualTotal
+                  }
+                  switchToReceipt={switchToReceipt}
+                  description={allReceiptsData[receiptName].description}
+                  payTo={allReceiptsData[receiptName].payTo}
+                  marked={personReceiptsData[receiptName].marked}
+                  paid={personReceiptsData[receiptName].paid}
+                  setChange={setChange}
+                />
+                {/* </button> */}
               </div>
             ))
           : null}
 
         {/* Admin Stuff*/}
-        <AddReceiptPopUp setChange={setChange} />
+        <AddReceiptPopUp
+          setChange={setChange}
+          allReceiptsData={allReceiptsData}
+        />
 
         {selectedUser === "Overview" ? (
           admin ? (
@@ -187,7 +261,7 @@ const LandingPage = () => {
                   setAdmin((prevAdmin) => !prevAdmin);
                 }}
               >
-                Disable Edits
+                Disable Admin
               </button>
             </div>
           ) : (
@@ -197,7 +271,7 @@ const LandingPage = () => {
                   setAdmin((prevAdmin) => !prevAdmin);
                 }}
               >
-                Enable Edits
+                Enable Admin
               </button>
             </div>
           )
@@ -205,12 +279,87 @@ const LandingPage = () => {
       </article>
 
       <article id={"select-items"} style={{ display: "none" }}>
-        Next Screen for {selectedUser} for {selectedReceipt}
+        {selectedReceipt !== "" &&
+        allReceiptsData &&
+        "items" in allReceiptsData[selectedReceipt] ? (
+          <div>
+            <div className="flex justify-center mt-5">
+              <button
+                onClick={() => {
+                  setAdmin((prevAdmin) => !prevAdmin);
+                }}
+                className="text-center"
+              >
+                {admin ? "Disable Admin" : "Enable Admin"}
+              </button>
+            </div>
+            <button
+              onClick={calculateTotal}
+              className="mt-5 text-center w-full bg-lightBackground rounded-md p-4"
+            >
+              Calculate Total
+              <div>
+                {"individualTotals" in allReceiptsData[selectedReceipt] &&
+                selectedReceipt !== "" ? (
+                  <span className="text-accent">
+                    $
+                    {allReceiptsData[selectedReceipt].individualTotals[
+                      selectedUser
+                    ].toFixed(2)}
+                  </span>
+                ) : (
+                  <span className="text-accent">$0.00</span>
+                )}
+                <div className="flex justify-center">
+                  <h3 className="border-t-2">
+                    ${allReceiptsData[selectedReceipt].total}
+                  </h3>
+                </div>
+              </div>
+              {admin ? (
+                <div>
+                  Users Paying vs Actual Total
+                  <div className="text-accent">
+                    ${allReceiptsData[selectedReceipt].usersPayingTotal}
+                  </div>
+                  <div className="border-t-2">
+                    ${allReceiptsData[selectedReceipt].actualTotal}
+                  </div>
+                </div>
+              ) : null}
+            </button>
+            <div className="flex flex-col items-center">
+              <div className="mt-5 grid-cols-3 grid gap-5 flex-wrap">
+                {admin ? (
+                  <button> add Item</button>
+                ) : (
+                  <button> Dont add </button>
+                )}
+                {allReceiptsData[selectedReceipt].items.map((item, index) => (
+                  <ItemCard
+                    item={item}
+                    key={item.itemName + index}
+                    index={index}
+                    selectedReceipt={selectedReceipt}
+                    selectedUser={selectedUser}
+                    setChange={setChange}
+                    usersPaying={Object.keys(
+                      "individualTotals" in allReceiptsData[selectedReceipt] &&
+                        selectedReceipt !== ""
+                        ? allReceiptsData[selectedReceipt].individualTotals
+                        : []
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div> No Items </div>
+        )}
       </article>
       {selectedUser === "Mitchell" ? (
-        <div className="flex justify-center">
-          {/* <button onClick={openUserBox}>Add Items</button> */}
-        </div>
+        <div className="flex justify-center"></div>
       ) : null}
     </main>
   );

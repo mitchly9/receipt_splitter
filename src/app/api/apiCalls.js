@@ -58,3 +58,9 @@ export const deleteEntry = (deleteFromURL, entryToDelete) => {
   deleteEntry[entryToDelete] = null;
   return axiosPatch(deleteFromURL, deleteEntry);
 };
+
+export const addOrEditSingleEntry = (url, entry, value) => {
+  let entryToAdd = {};
+  entryToAdd[entry] = value;
+  return axiosPatch(url, entryToAdd);
+};

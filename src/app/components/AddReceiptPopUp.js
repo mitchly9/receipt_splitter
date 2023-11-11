@@ -1,7 +1,8 @@
 import React from "react";
-import { axiosPut } from "../api/apiCalls";
+import { axiosPut, deleteBranch } from "../api/apiCalls";
+import { receiptSchema } from "../util/schemas";
 
-const AddReceiptPopUp = ({ setChange }) => {
+const AddReceiptPopUp = ({ setChange, allReceiptsData }) => {
   function addReceipt(e) {
     e.preventDefault();
     const receiptName = document.getElementById("receiptNameForm").value;
@@ -14,13 +15,7 @@ const AddReceiptPopUp = ({ setChange }) => {
     document.getElementById("payToForm").value = "";
     document.getElementById("totalForm").value = "";
 
-    const receipt = {
-      description,
-      payTo,
-      total,
-    };
-
-    axiosPut(`receipts/${receiptName}`, receipt)
+    axiosPut(`receipts/${receiptName}`, receiptSchema)
       .then(() => {
         document.getElementById("add-receipt").style.display = "none";
         setChange((prevChange) => prevChange + 1);
@@ -35,9 +30,35 @@ const AddReceiptPopUp = ({ setChange }) => {
     const receiptName = document.getElementById("receiptNameForm").value;
     if (receiptName === "") {
       document.getElementById("add-receipt").style.display = "none";
+    } else if (
+      receiptName in allReceiptsData &&
+      "individualTotals" in allReceiptsData[receiptName]
+    ) {
+      let promises = [];
+      const usersBuying = Object.keys(
+        allReceiptsData[receiptName].individualTotals
+      );
+      for (let i = 0; i < usersBuying.length; i++) {
+        promises.push(
+          deleteBranch(`users/${usersBuying[i]}/receipts/${receiptName}`)
+        );
+      }
+      Promise.all(promises)
+        .then(() => {
+          deleteBranch(`receipts/${receiptName}`)
+            .then(() => {})
+            .catch((error) => console.log(error));
+        })
+        .then(() => {
+          document.getElementById("add-receipt").style.display = "none";
+          setChange((prevChange) => prevChange + 1);
+        })
+        .catch((error) => console.log(error));
     } else {
+      alert("Receipt not found");
     }
   }
+
   return (
     <form
       id={"add-receipt"}
