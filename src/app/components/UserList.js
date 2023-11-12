@@ -6,6 +6,7 @@ export const UserList = ({
   users,
   setSelectedReceipt,
   setChange,
+  selectedReceipt,
 }) => {
   function changeUser() {
     document.getElementById("name-header").classList.add("hidden");
@@ -23,16 +24,23 @@ export const UserList = ({
   }
 
   return (
-    <section id="header" className="flex justify-center">
+    <section id="header" className="">
+      {selectedReceipt !== "" ? (
+        <div className="flex justify-center">
+          <h1 className="text-title font-bold text-accent">
+            {selectedReceipt}
+          </h1>
+        </div>
+      ) : null}
       <button
         id={"name-header"}
         onClick={changeUser}
-        className="text-title w-fit border-2 p-4 rounded-md"
+        className="text-title font-medium w-fit border-2 p-4 rounded-md"
       >
         {selectedUser}
       </button>
       <div id={"user-list"} className="w-screen" style={{ display: "none" }}>
-        <ul className="flex flex-wrap justify-around">
+        <div className="flex justify-center">
           <button
             onClick={(e) => {
               selectUser(e);
@@ -41,6 +49,8 @@ export const UserList = ({
           >
             Overview
           </button>
+        </div>
+        <ul className="flex flex-wrap justify-evenly">
           {users
             ? users.map((user) => (
                 <li key={`${user} list`}>

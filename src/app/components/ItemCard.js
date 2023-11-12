@@ -4,7 +4,7 @@ import { addOrEditSingleEntry, axiosGet, deleteEntry } from "../api/apiCalls";
 
 const ItemCard = ({
   item,
-  index,
+  itemID,
   selectedReceipt,
   selectedUser,
   setChange,
@@ -24,12 +24,12 @@ const ItemCard = ({
   }, [item, selectedUser]);
 
   function addPerson(userAdded) {
-    axiosGet(`receipts/${selectedReceipt}/items/${index}`).then(
+    axiosGet(`receipts/${selectedReceipt}/items/${itemID}`).then(
       (updatedItemObj) => {
         let updatedItem = updatedItemObj.data;
         if ("usersBuying" in updatedItem) {
           addOrEditSingleEntry(
-            `receipts/${selectedReceipt}/items/${index}/usersBuying`,
+            `receipts/${selectedReceipt}/items/${itemID}/usersBuying`,
             userAdded,
             userAdded
           )
@@ -42,7 +42,7 @@ const ItemCard = ({
             .catch((error) => console.log(error));
         } else {
           addOrEditSingleEntry(
-            `receipts/${selectedReceipt}/items/${index}/usersBuying`,
+            `receipts/${selectedReceipt}/items/${itemID}/usersBuying`,
             userAdded,
             userAdded
           )
@@ -60,7 +60,7 @@ const ItemCard = ({
 
   function removePerson(userRemoved) {
     deleteEntry(
-      `receipts/${selectedReceipt}/items/${index}/usersBuying`,
+      `receipts/${selectedReceipt}/items/${itemID}/usersBuying`,
       userRemoved
     )
       .then(() => {
@@ -74,15 +74,17 @@ const ItemCard = ({
 
   return (
     <div className="items-center rounded-md text-center w-full bg-lightBackground p-3 break-all">
-      <h2 className="ml-10 flex justify-center text-heading">
-        ${item.itemPrice}
+      <h2 className="flex justify-center text-heading">
+        ${item.itemPrice.toFixed(2)}
         {"usersBuying" in item ? (
           <p className="text-text text-accent">
             (
-            {Math.round(
-              (item.itemPrice / Object.keys(item.usersBuying).length) * 100
-            ) / 100}{" "}
-            per)
+            {(
+              Math.round(
+                (item.itemPrice / Object.keys(item.usersBuying).length) * 100
+              ) / 100
+            ).toFixed(2)}
+            )
           </p>
         ) : (
           <p className="text-text text-accent">(N/A)</p>
@@ -96,14 +98,14 @@ const ItemCard = ({
         className="rounded mr-4"
       />
       <div className="">
-        <div className="h-fit self-center place-self-center">
+        <div className="h-fit ">
           {usersPaying.length !== 0 ? (
             usersPaying.map((user) =>
               user !== selectedUser ? (
                 "usersBuying" in item ? (
                   Object.keys(item.usersBuying).includes(user) ? (
                     <button
-                      key={user + selectedReceipt + index}
+                      key={user + selectedReceipt + itemID}
                       className="border-2 border-trueColor  mx-2 mb-1 text-text w-fit p-4 rounded-md mt-2"
                       onClick={() => {
                         removePerson(user);
@@ -113,7 +115,7 @@ const ItemCard = ({
                     </button>
                   ) : (
                     <button
-                      key={user + selectedReceipt + index}
+                      key={user + selectedReceipt + itemID}
                       className="border-2 border-falseColor  mx-2 mb-1 text-text w-fit p-4 rounded-md mt-2"
                       onClick={() => {
                         addPerson(user);
@@ -124,7 +126,7 @@ const ItemCard = ({
                   )
                 ) : (
                   <button
-                    key={user + selectedReceipt + index}
+                    key={user + selectedReceipt + itemID}
                     className="border-2 border-falseColor  mx-2 mb-1 text-text w-fit p-4 rounded-md mt-2"
                     onClick={() => {
                       addPerson(user);
@@ -161,7 +163,6 @@ const ItemCard = ({
           </button>
         )}
       </div>
-      <div className="flex flex-wrap"></div>
     </div>
   );
 };
