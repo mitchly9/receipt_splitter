@@ -37,34 +37,9 @@ export const UserList = ({
       className="text-center flex-col flex justify-center items-center w-full"
     >
       {selectedReceipt !== "" ? (
-        selectedUser === "Mitchell" ? (
-          <div className="grid grid-cols-5 w-full">
-            {admin ? (
-              <div className="col-start-1">
-                <div className="flex justify-start">
-                  <button
-                    className="border-2 rounded-md w-fit h-fit p-1 "
-                    onClick={() => {}}
-                  >
-                    Add Items
-                  </button>
-                </div>
-              </div>
-            ) : null}
-            <div className="col-start-2 col-end-5 w-full ">
-              <div>
-                <button
-                  className={"border-2 p-1 rounded-md"}
-                  onClick={goBackToUser}
-                >
-                  Back to {selectedUser}
-                </button>
-                <h1 className="text-title font-bold text-accent">
-                  {selectedReceipt}
-                </h1>
-              </div>
-            </div>
-            <div className="col-start-5 flex justify-end">
+        <div className="grid grid-cols-5 w-full">
+          {selectedUser === "Mitchell" ? (
+            <div className="col-start-1 flex justify-start">
               <button
                 className="border-2 rounded-md w-fit h-fit p-1"
                 onClick={() => {
@@ -74,26 +49,24 @@ export const UserList = ({
                 {admin ? "Disable Admin" : "Enable Admin"}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-5 w-full">
-            <div className="col-start-2 col-end-5 w-full ">
-              <div>
-                <h1 className="text-title font-bold text-accent">
-                  {selectedReceipt}
-                </h1>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                className={"border-2 p-1 rounded-md w-fit h-fit "}
-                onClick={goBackToUser}
-              >
-                Back to {selectedUser}
-              </button>
+          ) : null}
+
+          <div className="col-start-2 col-end-5 w-full ">
+            <div>
+              <h1 className="text-title font-bold text-accent">
+                {selectedReceipt}
+              </h1>
             </div>
           </div>
-        )
+          <div className="flex justify-end">
+            <button
+              className={"border-2 p-1 rounded-md w-fit h-fit "}
+              onClick={goBackToUser}
+            >
+              Back to {selectedUser}
+            </button>
+          </div>
+        </div>
       ) : null}
       <button
         id={"name-header"}

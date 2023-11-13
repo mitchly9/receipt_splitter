@@ -75,7 +75,7 @@ const ItemCard = ({
   return (
     <div className="items-center rounded-md text-center w-full bg-lightBackground p-3 break-all">
       <h2 className="flex justify-center text-heading">
-        ${item.itemPrice.toFixed(2)}
+        ${item.itemPrice}
         {"usersBuying" in item ? (
           <p className="text-text text-accent">
             (

@@ -13,6 +13,11 @@ module.exports = {
         hostname: "images.costcobusinessdelivery.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "media.istockphoto.com",
+        pathname: "**",
+      },
     ],
   },
 };

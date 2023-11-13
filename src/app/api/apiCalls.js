@@ -19,6 +19,17 @@ export const axiosPut = (url, data) => {
     });
 };
 
+export const axiosPost = (url, data) => {
+  return axios
+    .post(
+      `https://groceryapp-5e433-default-rtdb.firebaseio.com/${url}.json`,
+      data
+    )
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
 export const axiosPatch = (url, data) => {
   return axios
     .patch(

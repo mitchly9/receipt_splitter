@@ -5,7 +5,7 @@ export const userReceiptSchema = {
 };
 
 export const receiptSchema = {
-  actualTota: 0,
+  actualTotal: 0,
   description: "",
   individualTotals: {},
   marked: {},

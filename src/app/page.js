@@ -8,8 +8,7 @@ import { addOrEditSingleEntry, axiosGet } from "./api/apiCalls";
 import ItemCard from "./components/ItemCard";
 import ItemEditor from "./components/ItemEditor";
 import AddReceiptCard from "./components/AddReceiptCard";
-import Image from "next/image";
-import AddItems from "./components/addItems";
+import ItemAdder from "./components/ItemAdder";
 
 const LandingPage = () => {
   const [users, setUsers] = useState([]);
@@ -90,12 +89,14 @@ const LandingPage = () => {
         Object.keys(receiptData.data.individualTotals).forEach(function (name) {
           allTotals[name] = 0;
         });
-        for (let i = 0; i < allItems.length; i++) {
-          actualTotal += allItems[i].itemPrice;
-          if ("usersBuying" in allItems[i]) {
-            let usersBuyingItem = Object.keys(allItems[i].usersBuying);
+        let itemIDs = Object.keys(allItems);
+        for (let i = 0; i < itemIDs.length; i++) {
+          actualTotal += allItems[itemIDs[i]].itemPrice;
+          if ("usersBuying" in allItems[itemIDs[i]]) {
+            let usersBuyingItem = Object.keys(allItems[itemIDs[i]].usersBuying);
             for (let j = 0; j < usersBuyingItem.length; j++) {
-              let math = allItems[i].itemPrice / usersBuyingItem.length;
+              let math =
+                allItems[itemIDs[i]].itemPrice / usersBuyingItem.length;
               usersPayingTotal += math;
               allTotals[usersBuyingItem[j]] += math;
             }
@@ -265,7 +266,6 @@ const LandingPage = () => {
           </div>
         ) : null}
       </article>
-
       <article id={"select-items"} style={{ display: "none" }}>
         {selectedReceipt !== "" &&
         allReceiptsData &&
@@ -304,23 +304,15 @@ const LandingPage = () => {
                     <div className="flex justify-center">
                       <div>
                         <span className="text-accent">
-                          $
-                          {allReceiptsData[
-                            selectedReceipt
-                          ].usersPayingTotal.toFixed(2)}
+                          ${allReceiptsData[selectedReceipt].usersPayingTotal}
                         </span>
                         <div className="border-t-2">
-                          $
-                          {allReceiptsData[selectedReceipt].actualTotal.toFixed(
-                            2
-                          )}
+                          ${allReceiptsData[selectedReceipt].actualTotal}
                         </div>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div> Something went wrong with the database? </div>
-                )}
+                ) : null}
               </button>
               {Object.keys(allReceiptsData[selectedReceipt].items).map(
                 (itemID) =>
@@ -367,8 +359,13 @@ const LandingPage = () => {
         ) : (
           <div> No Items </div>
         )}
-        <AddItems admin={admin} />
+        <ItemAdder
+          admin={admin}
+          selectedReceipt={selectedReceipt}
+          setChange={setChange}
+        />
       </article>
+
       {selectedUser === "Mitchell" ? (
         <div className="flex justify-center"></div>
       ) : null}
