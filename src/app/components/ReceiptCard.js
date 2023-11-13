@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { addOrEditSingleEntry } from "../api/apiCalls";
 
 export const ReceiptCard = ({
@@ -60,7 +60,7 @@ export const ReceiptCard = ({
           "w-1/12 border-l-2 border-t-2 border-b-2 rounded-l-md p-1"
         }
       >
-        Paid
+        {updatePaid ? "Paid " : "Unpaid"}
       </button>
       <button
         onClick={() => {
@@ -83,7 +83,7 @@ export const ReceiptCard = ({
           "w-1/12 border-r-2 border-t-2 border-b-2 rounded-r-md p-1"
         }
       >
-        Marked
+        {updateMarked ? "Done " : "Not Done"}
       </button>
     </div>
   );

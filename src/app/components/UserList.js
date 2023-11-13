@@ -7,6 +7,8 @@ export const UserList = ({
   setSelectedReceipt,
   setChange,
   selectedReceipt,
+  admin,
+  setAdmin,
 }) => {
   function changeUser() {
     document.getElementById("name-header").classList.add("hidden");
@@ -23,19 +25,80 @@ export const UserList = ({
     setChange((prevChange) => prevChange + 1);
   }
 
+  function goBackToUser() {
+    document.getElementById("receipt-chooser").classList.remove("hidden");
+    document.getElementById("select-items").style.display = "none";
+    setSelectedReceipt("");
+    setChange((prevChange) => prevChange + 1);
+  }
   return (
-    <section id="header" className="">
+    <section
+      id="header"
+      className="text-center flex-col flex justify-center items-center w-full"
+    >
       {selectedReceipt !== "" ? (
-        <div className="flex justify-center">
-          <h1 className="text-title font-bold text-accent">
-            {selectedReceipt}
-          </h1>
-        </div>
+        selectedUser === "Mitchell" ? (
+          <div className="grid grid-cols-5 w-full">
+            {admin ? (
+              <div className="col-start-1">
+                <div className="flex justify-start">
+                  <button
+                    className="border-2 rounded-md w-fit h-fit p-1 "
+                    onClick={() => {}}
+                  >
+                    Add Items
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            <div className="col-start-2 col-end-5 w-full ">
+              <div>
+                <button
+                  className={"border-2 p-1 rounded-md"}
+                  onClick={goBackToUser}
+                >
+                  Back to {selectedUser}
+                </button>
+                <h1 className="text-title font-bold text-accent">
+                  {selectedReceipt}
+                </h1>
+              </div>
+            </div>
+            <div className="col-start-5 flex justify-end">
+              <button
+                className="border-2 rounded-md w-fit h-fit p-1"
+                onClick={() => {
+                  setAdmin((prevAdmin) => !prevAdmin);
+                }}
+              >
+                {admin ? "Disable Admin" : "Enable Admin"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-5 w-full">
+            <div className="col-start-2 col-end-5 w-full ">
+              <div>
+                <h1 className="text-title font-bold text-accent">
+                  {selectedReceipt}
+                </h1>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                className={"border-2 p-1 rounded-md w-fit h-fit "}
+                onClick={goBackToUser}
+              >
+                Back to {selectedUser}
+              </button>
+            </div>
+          </div>
+        )
       ) : null}
       <button
         id={"name-header"}
         onClick={changeUser}
-        className="text-title font-medium w-fit border-2 p-4 rounded-md"
+        className="text-title font-medium w-fit border-2 p-4 rounded-md text-center flex justify-center"
       >
         {selectedUser}
       </button>

@@ -1,9 +1,18 @@
 /** @type {import('next').NextConfig} */
 
-// next.config.js
-
 module.exports = {
   images: {
-    domains: ["upload.wikimedia.org", "images.costcobusinessdelivery.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.costcobusinessdelivery.com",
+        pathname: "**",
+      },
+    ],
   },
 };

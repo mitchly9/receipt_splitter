@@ -3,7 +3,6 @@ import { useState, React } from "react";
 import { addOrEditSingleEntry, axiosPut } from "../api/apiCalls";
 
 const AddReceiptCard = ({ users, setChange }) => {
-  const receiptFields = { ...receiptSchema };
   const [usersAdded, setUsersAdded] = useState([]);
 
   ["Aidan", "Andoni", "Justin", "Mitchell"];

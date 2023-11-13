@@ -3,12 +3,13 @@ import { ReceiptCard } from "./components/ReceiptCard";
 import { useState, React, useEffect } from "react";
 import { UserList } from "./components/UserList";
 import { OverviewReceiptCard } from "./components/OverviewReceiptCard";
-import Image from "next/image";
 import { ReceiptEditor } from "./components/ReceiptEditor";
 import { addOrEditSingleEntry, axiosGet } from "./api/apiCalls";
 import ItemCard from "./components/ItemCard";
 import ItemEditor from "./components/ItemEditor";
 import AddReceiptCard from "./components/AddReceiptCard";
+import Image from "next/image";
+import AddItems from "./components/addItems";
 
 const LandingPage = () => {
   const [users, setUsers] = useState([]);
@@ -146,23 +147,12 @@ const LandingPage = () => {
     );
   }
 
-  function openUserBox() {
-    document.getElementById("add-receipt").style.display = "";
-  }
-
-  function switchToUser() {
-    document.getElementById("receipt-chooser").classList.remove("hidden");
-    document.getElementById("select-items").style.display = "none";
-    setSelectedReceipt("");
-  }
-
   return (
     <main className="bg-darkBackground max-h-fit min-h-screen p-10 text-lightFont">
-      <header className="flex justify-center items-center">
-        {selectedReceipt === "" ? null : (
-          <button onClick={switchToUser} className="absolute left-5"></button>
-        )}
+      <header className="flex">
         <UserList
+          admin={admin}
+          setAdmin={setAdmin}
           setChange={setChange}
           setSelectedReceipt={setSelectedReceipt}
           users={users}
@@ -264,28 +254,15 @@ const LandingPage = () => {
           ))
         ) : null}
         {selectedUser === "Overview" ? (
-          admin ? (
-            <div className="flex justify-between">
-              <button onClick={openUserBox}>Add Receipt</button>
-              <button
-                onClick={() => {
-                  setAdmin((prevAdmin) => !prevAdmin);
-                }}
-              >
-                {admin ? "Disable Admin" : "Enable Admin"}
-              </button>
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  setAdmin((prevAdmin) => !prevAdmin);
-                }}
-              >
-                Enable Admin
-              </button>
-            </div>
-          )
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                setAdmin((prevAdmin) => !prevAdmin);
+              }}
+            >
+              {admin ? "Disable Admin" : "Enable Admin"}
+            </button>
+          </div>
         ) : null}
       </article>
 
@@ -341,7 +318,9 @@ const LandingPage = () => {
                       </div>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div> Something went wrong with the database? </div>
+                )}
               </button>
               {Object.keys(allReceiptsData[selectedReceipt].items).map(
                 (itemID) =>
@@ -383,19 +362,12 @@ const LandingPage = () => {
                     />
                   )
               )}
-              <button
-                onClick={() => {
-                  setAdmin((prevAdmin) => !prevAdmin);
-                }}
-                className="text-center"
-              >
-                {admin ? "Disable Admin" : "Enable Admin"}
-              </button>
             </div>
           </div>
         ) : (
           <div> No Items </div>
         )}
+        <AddItems admin={admin} />
       </article>
       {selectedUser === "Mitchell" ? (
         <div className="flex justify-center"></div>
