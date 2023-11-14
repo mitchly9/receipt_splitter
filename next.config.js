@@ -5,18 +5,7 @@ module.exports = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "upload.wikimedia.org",
-        pathname: "**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.costcobusinessdelivery.com",
-        pathname: "**",
-      },
-      {
-        protocol: "https",
-        hostname: "media.istockphoto.com",
-        pathname: "**",
+        hostname: "**",
       },
     ],
   },

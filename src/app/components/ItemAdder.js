@@ -5,9 +5,15 @@ import Link from "next/link";
 
 const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
   const [itemsToAdd, setItemsToAdd] = useState({});
+
   const [inputValue, setInputValue] = useState("");
-  const [itemPriceIndex, setItemPriceIndex] = useState(0);
   const [priceValue, setPriceValue] = useState("");
+  const [nameValue, setNameValue] = useState("");
+  const [imageValue, setImageValue] = useState("");
+
+  const [itemPriceIndex, setItemPriceIndex] = useState(0);
+  const [itemImageIndex, setItemImageIndex] = useState(0);
+  const [itemNameIndex, setItemNameIndex] = useState(0);
 
   function addItems() {
     let promises = [];
@@ -23,6 +29,7 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
     Promise.all(promises)
       .then(() => {
         setChange((prev) => prev + 1);
+        setItemsToAdd({});
       })
       .catch((error) => console.log(error));
   }
@@ -53,6 +60,9 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
 
   return admin ? (
     <div className="mt-10">
+      <div className="text-white flex justify-center mb-1">
+        Total Items: {Object.keys(itemsToAdd).length} (+ Tax)
+      </div>
       <div className="flex justify-between items-center bg-lightBackground text-black">
         <form
           className="text-center bg-lightBackground p-2"
@@ -72,37 +82,66 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
             onChange={(e) => setInputValue(e.target.value)}
           />
         </form>
-        <div className="text-white">
-          Total Items: {Object.keys(itemsToAdd).length} (+ Tax)
-        </div>
+        <form
+          className="text-center bg-lightBackground p-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (itemNameIndex < Object.keys(itemsToAdd).length) {
+              setItemsToAdd((prev) => {
+                const test = { ...prev };
 
+                test[itemNameIndex].itemName = nameValue;
+
+                return test;
+              });
+              setNameValue("");
+              setItemNameIndex((prev) => prev + 1);
+            } else {
+              alert("Past Index");
+            }
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Item Name"
+            name="itemName"
+            className="p-2 m-1 border rounded-md w-48"
+            value={nameValue}
+            onChange={(e) => setNameValue(e.target.value)}
+          />
+        </form>
         <form
           className="text-center bg-lightBackground col-span-2 p-2"
           onSubmit={(e) => {
             e.preventDefault();
+            if (priceValue !== "") {
+              if (itemPriceIndex < Object.keys(itemsToAdd).length) {
+                let value;
+                if (priceValue.includes("-")) {
+                  const parts = priceValue.split("-");
 
-            let value;
-            if (priceValue.includes("-")) {
-              const parts = priceValue.split("-");
+                  // Convert each part to a number
+                  const firstNumber = parseFloat(parts[0].trim());
+                  const secondNumber = parseFloat(parts[1].trim());
 
-              // Convert each part to a number
-              const firstNumber = parseFloat(parts[0].trim());
-              const secondNumber = parseFloat(parts[1].trim());
+                  // Subtract the numbers
+                  value = Math.round((firstNumber - secondNumber) * 100) / 100;
+                } else {
+                  value = priceValue;
+                }
 
-              // Subtract the numbers
-              value = firstNumber - secondNumber;
-            } else {
-              value = priceValue;
+                setItemsToAdd((prev) => {
+                  const test = { ...prev };
+
+                  test[itemPriceIndex].itemPrice = parseFloat(value);
+
+                  return test;
+                });
+                setPriceValue("");
+              } else {
+                alert("Past Index");
+              }
             }
-
-            setItemsToAdd((prev) => {
-              const test = { ...prev };
-
-              test[itemPriceIndex].itemPrice = value;
-
-              return test;
-            });
-            setPriceValue("");
             setItemPriceIndex((prev) => prev + 1);
           }}
         >
@@ -112,6 +151,35 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
             className="p-2 m-1 border rounded-md w-48"
             value={priceValue}
             onChange={(e) => setPriceValue(e.target.value)}
+          />
+        </form>
+
+        <form
+          className="text-center bg-lightBackground p-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (itemImageIndex < Object.keys(itemsToAdd).length) {
+              setItemsToAdd((prev) => {
+                const test = { ...prev };
+
+                test[itemImageIndex].imageAddress = imageValue;
+
+                return test;
+              });
+              setImageValue("");
+              setItemImageIndex((prev) => prev + 1);
+            } else {
+              alert("Past Index");
+            }
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Image Address"
+            name="imageAddressr"
+            className="p-2 m-1 border rounded-md w-48"
+            value={imageValue}
+            onChange={(e) => setImageValue(e.target.value)}
           />
         </form>
       </div>
@@ -151,13 +219,17 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
                 test[index].itemName = e.target.elements.itemNameChanger.value;
                 return test;
               });
+              setItemNameIndex(index + 1);
             }}
           >
             <input
               type="text"
               placeholder={itemsToAdd[singleItemNumber].itemName}
               name="itemNameChanger"
-              className="p-2  bg-darkBackground rounded-md w-48"
+              className={
+                (itemNameIndex === index ? "border border-accent " : "") +
+                "p-2 bg-darkBackground rounded-md w-40"
+              }
             />
           </form>
           <form
@@ -165,11 +237,12 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
               e.preventDefault();
               setItemsToAdd((prev) => {
                 const test = { ...prev };
-                test[index].itemPrice = Number(
+                test[index].itemPrice = parseFloat(
                   e.target.elements.itemPrice.value
                 );
                 return test;
               });
+              setItemPriceIndex(index + 1);
             }}
           >
             <input
@@ -205,13 +278,17 @@ const ItemAdder = ({ admin, selectedReceipt, setChange }) => {
                 test[index].imageAddress = e.target.elements.imageAddress.value;
                 return test;
               });
+              setItemImageIndex(index + 1);
             }}
           >
             <input
               type="text"
               placeholder="Image Address"
               name="imageAddress"
-              className="p-2 bg-darkBackground rounded-md w-48"
+              className={
+                (itemImageIndex === index ? "border border-accent " : "") +
+                "p-2 bg-darkBackground rounded-md w-48"
+              }
             />
           </form>
         </div>

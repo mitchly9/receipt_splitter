@@ -91,13 +91,17 @@ const LandingPage = () => {
         });
         let itemIDs = Object.keys(allItems);
         for (let i = 0; i < itemIDs.length; i++) {
-          actualTotal += allItems[itemIDs[i]].itemPrice;
+          actualTotal += parseFloat(
+            Math.round(allItems[itemIDs[i]].itemPrice * 100) / 100
+          );
           if ("usersBuying" in allItems[itemIDs[i]]) {
             let usersBuyingItem = Object.keys(allItems[itemIDs[i]].usersBuying);
             for (let j = 0; j < usersBuyingItem.length; j++) {
-              let math =
-                allItems[itemIDs[i]].itemPrice / usersBuyingItem.length;
-              usersPayingTotal += math;
+              let math = parseFloat(
+                parseFloat(allItems[itemIDs[i]].itemPrice) /
+                  usersBuyingItem.length
+              );
+              usersPayingTotal += parseFloat(math);
               allTotals[usersBuyingItem[j]] += math;
             }
           }
@@ -109,7 +113,7 @@ const LandingPage = () => {
         addOrEditSingleEntry(
           `/receipts/${selectedReceipt}`,
           "actualTotal",
-          actualTotal
+          actualTotal.toFixed(2)
         );
         addOrEditSingleEntry(
           `/receipts/${selectedReceipt}`,
