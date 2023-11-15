@@ -54,10 +54,19 @@ const ItemEditor = ({
       />
       <div className="flex justify-center content-center items-center mb-3">
         <input
+          id={"imageChange" + itemID}
           className="text-center rounded border-2 bg-lightBackground border-lightBackground block p-2 text-darkFont w-min"
           placeholder={item.imageAddress}
         />
-        <button className="border-2 border-lightBackground ml-1 p-4  self-center  rounded-md mt-1"></button>
+        <button
+          onClick={() => {
+            changeField(
+              "imageAddress",
+              document.getElementById(`imageChange${itemID}`).value
+            );
+          }}
+          className="border-2 border-lightBackground ml-1 p-4  self-center  rounded-md mt-1"
+        ></button>
       </div>
       <div className="flex justify-center content-center items-center mb-3">
         <input

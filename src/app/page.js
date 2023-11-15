@@ -4,7 +4,7 @@ import { useState, React, useEffect } from "react";
 import { UserList } from "./components/UserList";
 import { OverviewReceiptCard } from "./components/OverviewReceiptCard";
 import { ReceiptEditor } from "./components/ReceiptEditor";
-import { addOrEditSingleEntry, axiosGet } from "./api/apiCalls";
+import { addOrEditSingleEntry, axiosGet, fixImages } from "./api/apiCalls";
 import ItemCard from "./components/ItemCard";
 import ItemEditor from "./components/ItemEditor";
 import AddReceiptCard from "./components/AddReceiptCard";
@@ -258,9 +258,10 @@ const LandingPage = () => {
             </div>
           ))
         ) : null}
-        {selectedUser === "Overview" ? (
+        {selectedUser === "Mitchell" ? (
           <div className="flex justify-center">
             <button
+              className="text-darkBackground"
               onClick={() => {
                 setAdmin((prevAdmin) => !prevAdmin);
               }}
