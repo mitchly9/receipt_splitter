@@ -11,6 +11,7 @@ export const UserList = ({
   setAdmin,
 }) => {
   function changeUser() {
+    document.getElementById("change-user-button").classList.add("hidden");
     document.getElementById("name-header").classList.add("hidden");
     document.getElementById("user-list").style.display = "";
   }
@@ -21,6 +22,7 @@ export const UserList = ({
     }
     document.getElementById("name-header").classList.remove("hidden");
     document.getElementById("user-list").style.display = "none";
+    document.getElementById("change-user-button").classList.remove("hidden");
     setSelectedUser(e.target.textContent);
     setChange((prevChange) => prevChange + 1);
   }
@@ -71,9 +73,12 @@ export const UserList = ({
       <button
         id={"name-header"}
         onClick={changeUser}
-        className="text-title font-medium w-fit border-2 p-4 rounded-md text-center flex justify-center"
+        className="text-title font-medium w-fit border-2 p-4 rounded-md text-center justify-center"
       >
         {selectedUser}
+      </button>
+      <button id={"change-user-button"} onClick={changeUser} className="my-3">
+        Change User
       </button>
       <div id={"user-list"} className="w-screen" style={{ display: "none" }}>
         <div className="flex justify-center">

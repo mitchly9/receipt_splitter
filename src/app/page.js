@@ -166,7 +166,7 @@ const LandingPage = () => {
           selectedReceipt={selectedReceipt}
         />
       </header>
-      <article id={"receipt-chooser"} className="mt-12">
+      <article id={"receipt-chooser"} className="mt-9">
         {selectedUser === "Overview" ? (
           <div>
             {admin ? (
