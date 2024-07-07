@@ -109,7 +109,24 @@ const LandingPage = () => {
     }
     // Set the sorted dates array
   }
+
   function calculateTotal() {
+    Promise.all([
+      addOrEditSingleEntry(
+        `users/${selectedUser}/receipts/${selectedReceipt}`,
+        "marked",
+        true
+      ),
+      addOrEditSingleEntry(
+        `receipts/${selectedReceipt}/marked/`,
+        selectedUser,
+        true
+      ),
+    ])
+      .then(() => {
+        setChange((prevChange) => prevChange + 1);
+      })
+      .catch((error) => console.log(error));
     axiosGet(`/receipts/${selectedReceipt}`)
       .then((receiptData) => {
         let allItems = receiptData.data.items;
