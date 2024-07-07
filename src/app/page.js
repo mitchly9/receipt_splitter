@@ -39,12 +39,14 @@ const LandingPage = () => {
           console.log(error);
         });
     }
+    // Gets all receipts
     axiosGet("receipts")
       .then((allReceiptsObj) => {
         setAllReceiptsData(allReceiptsObj.data);
-        setAllReceipts(
-          "data" in allReceiptsObj ? Object.keys(allReceiptsObj.data) : null
-        );
+        // setAllReceipts(
+        //   "data" in allReceiptsObj ? Object.keys(allReceiptsObj.data) : null
+        // );
+        setReceiptSorted(allReceiptsObj, true);
       })
       .catch((error) => {
         console.log(error);
@@ -54,7 +56,7 @@ const LandingPage = () => {
   useEffect(() => {
     axiosGet("receipts")
       .then((allReceiptsObj) => {
-        setAllReceiptsData(allReceiptsObj.data);
+        setReceiptSorted(allReceiptsObj, true);
       })
       .catch((error) => {
         console.log(error);
@@ -70,7 +72,7 @@ const LandingPage = () => {
     } else {
       axiosGet(`users/${selectedUser}/receipts`)
         .then((personReceiptObj) => {
-          setReceipts(Object.keys(personReceiptObj.data));
+          setReceiptSorted(personReceiptObj, false);
           setPersonReceiptsData(personReceiptObj.data);
         })
         .catch((error) => {
@@ -79,6 +81,34 @@ const LandingPage = () => {
     }
   }, [selectedUser]);
 
+  function setReceiptSorted(obj, bool) {
+    const dates = "data" in obj ? Object.keys(obj.data) : [];
+
+    // Sort the dates chronologically
+    dates.sort((date1, date2) => {
+      // Convert dates to Date objects for comparison
+      const parseDate = (dateString) => {
+        const parts = dateString.split(" ");
+        const month = parts[0]; // Assuming month is the first part
+        const day = parseInt(parts[1].replace(/\D/g, ""), 10); // Extract day and remove non-digit characters
+        const year = parseInt(parts[2], 10); // Assuming year is the last part
+        return new Date(`${month} ${day}, ${year}`);
+      };
+
+      // Convert dates to Date objects for comparison
+      const dateObj1 = parseDate(date1);
+      const dateObj2 = parseDate(date2);
+
+      // Compare the dates
+      return dateObj2 - dateObj1;
+    });
+    if (bool) {
+      setAllReceipts(dates);
+    } else {
+      setReceipts(dates);
+    }
+    // Set the sorted dates array
+  }
   function calculateTotal() {
     axiosGet(`/receipts/${selectedReceipt}`)
       .then((receiptData) => {

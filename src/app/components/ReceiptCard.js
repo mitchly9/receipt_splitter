@@ -71,7 +71,7 @@ export const ReceiptCard = ({
         <h1 className="text-heading text-darkFont">{receiptName}</h1>
         <h2 className="text-subheading"> ${total}</h2>
         <h3 className="text-accent text-subheading"> ${individualTotal} </h3>
-        <div className="flex justify-between text-accent text-text">
+        <div className="flex justify-between text-accent text-text mt-2">
           <p> Description: {description} </p>
           <p> Pay to: {payTo} </p>
         </div>

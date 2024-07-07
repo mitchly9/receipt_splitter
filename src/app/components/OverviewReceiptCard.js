@@ -48,7 +48,7 @@ export const OverviewReceiptCard = ({
           </div>
         )}
       </ul>
-      <div className="flex justify-between text-accent text-text">
+      <div className="flex justify-between text-accent text-text mt-1">
         <p> Description: {description} </p>
         <p> Pay to: {payTo} </p>
       </div>
