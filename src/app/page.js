@@ -61,7 +61,7 @@ const LandingPage = () => {
       .catch((error) => {
         console.log(error);
       });
-  }, [allReceipts]);
+  }, [change]);
 
   useEffect(() => {
     if (selectedUser === "Overview") {
